@@ -1,0 +1,5 @@
+sandbox
+*.ova
+__pycache__
+*.pyc
+*.DS_Store
