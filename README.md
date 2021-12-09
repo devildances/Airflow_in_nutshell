@@ -45,9 +45,29 @@ Airflow is an orchestrator, not a processing framework, process our gigabytes of
     - So our tasks will not be executed on the **Node 1** or **Node 2** but will be spread among the worker nodes in order to execute as many tasks as we want
 
 
+## Directed Acyclic Graph (DAG)
+
+![Alt text](/files/images/img3.png?raw=true "DAG")
+
+The DAG is data pipeline in Airflow and it's a graph like the image above with nodes corresponding to our tasks and Edges corresponding to the dependencies in Airflow. What we'll have basically is that as soon as our data pipeline/DAG is triggered, all the tasks will bexecuted in the order as given from the dependencies.
+
+
+
+## Types of Operators
+
+1. Action Operators : Execute an action, corresponding to all operators executing a function
+    - PythonOperator
+    - BashOperator
+    - so on
+2. Transfer Operators : Transfer data, those are related to any operator transferring data from a source to a destination
+3. Sensors : wait for a condition to be met, those are used in order to wait for something to happen before moving to the next task
+    - e.g. we want to wait for a SQL record to be updated in our database then we will use the Sensors
+
+
 # AIRFLOW IS NOT A DATA STREAMING SOLUTION NEITHER DATA PROCESSING FRAMEWORK
 
-So if we want to process data every sevond then **don't use Airflow** because it's not the purpose of Airflow and also Airflow it's not same with Spark so if we want to process terabytes of data then **do that in Airflow**. If we want to process terabytes of data, we'll use the Spark submit operator and that operator will send Spark job where the terabytes of data will be processed inside Spark and not inside Airflow otherwise the memory of Airflow will be exploded.
+So if we want to process data every second then **don't use Airflow** because it's not the purpose of Airflow and also Airflow it's not same with Spark so if we want to process terabytes of data then **do that in Airflow**. If we want to process terabytes of data, we'll use the Spark submit operator and that operator will send Spark job where the terabytes of data will be processed inside Spark and not inside Airflow otherwise the memory of Airflow will be exploded.
+
 
 
 ## How to Start
@@ -87,9 +107,10 @@ So if we want to process data every sevond then **don't use Airflow** because it
         - ```pip install wheel```
     - Now we need to install Airflow in our virtual environment
         ```bash
+        AIRFLOW_VERSION=2.2.2
         PYTHON_VERSION="$(python --version | cut -d " " -f 2 | cut -d "." -f 1-2)"
-        CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-main/constraints-${PYTHON_VERSION}.txt"
-        pip3 install "apache-airflow-providers-google" --constraint "${CONSTRAINT_URL}"
+        CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-no-providers-${PYTHON_VERSION}.txt"
+        pip install "apache-airflow==${AIRFLOW_VERSION}" --constraint "${CONSTRAINT_URL}"
         ```
     - Run initiating db in order to initiate the Metastore of Airflow as well as generating some files and folders needed by Airflow
         - ```airflow db init```
@@ -131,3 +152,37 @@ So if we want to process data every sevond then **don't use Airflow** because it
             - this command is used to know the tasks in specific DAG
         - ```airflow dags trigger -e <yyyy-mm-dd> <DAG_name>```
             - this command allows us to trigger our data pipeline with the specific execution date from the CLI of Airflow
+
+
+
+## How to Crete a Data Pipeline
+
+- Open our VS Code and remote to our VirtualBox engine
+- Activate the python virtual environment that already created before
+- Go to the airflow folder in the directory
+- Access it through the Explorer on our VS Code
+- Create new folder named **dags** if we don't have on it using `mkdir` command
+    - In this folder that we'll put the python files corresponding to our data pipelines
+- Create new python file under **dags** folder
+    -  This file is where we will define our DAG/Data Pipeline
+    - The minimum code that we heve to put each time we create a new data pipeline Airflow are
+        - import the DAG object
+            ```python
+            from airflow.models import DAG
+            ```
+        - import datetime object that will be useful in order to define a date that we need to specify
+        - instantiate our *DAG*
+            - first we need to do is define the DAG id
+                - the DAG id **must be unique** among all of our DAGs
+                - each data pipeline in Airflow must have a unique DAG id
+            - next we need to define the scheduling interval in our DAG object
+                - it indicates the frequency at which our data pipeline will be triggered
+            - we have to define when the data pipeline will stop being scheduled and when ti will be triggered using `catchup` parameter
+            - finally, initialize our DAG object
+        - define the *tasks*/*operators* under our DAG object
+            - an operator is a task in our data pipeline or an operator defines one task in our data pipeline
+                - **IMPORTANT : 1 operator for 1 task, don't put 1 operator for 2 tasks or more!!**
+                - e.g. the PythonOperator execute only 1 python function (cleaning data or processing data but not both of them in one operator), if we want to execute/run 2 tasks then seperate them in different PythonOperator
+        - define the *default arguments* on top of our DAG object as dictionary data types and inside it we have to specify all the arguemnts that will be common to all our our tasks/operators in our data pipeline
+            - define the start date in the default arguments
+                - the value of this parameter is actually when our data pipeline will start being scheduled
