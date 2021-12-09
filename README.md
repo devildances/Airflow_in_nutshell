@@ -3,6 +3,7 @@
 Airflow is an orchestrator, not a processing framework, process our gigabytes of data outside of Airflow (i.e. We have a Spark cluster, we use an operator to execute a Spark job, the data is processed in Spark).
 
 
+
 ## Core Components of Airflow
 
 - Web server
@@ -21,6 +22,7 @@ Airflow is an orchestrator, not a processing framework, process our gigabytes of
     - Process/sub process executing our task
 
 > The scheduler schedules your tasks, the web server serves the UI, the database stores the metadata of Airflow. A DAG is a data pipeline, an Operator is a task.
+
 
 
 ## Airflow Architecture
@@ -45,6 +47,7 @@ Airflow is an orchestrator, not a processing framework, process our gigabytes of
     - So our tasks will not be executed on the **Node 1** or **Node 2** but will be spread among the worker nodes in order to execute as many tasks as we want
 
 
+
 ## Directed Acyclic Graph (DAG)
 
 ![Alt text](/files/images/img3.png?raw=true "DAG")
@@ -62,6 +65,21 @@ The DAG is data pipeline in Airflow and it's a graph like the image above with n
 2. Transfer Operators : Transfer data, those are related to any operator transferring data from a source to a destination
 3. Sensors : wait for a condition to be met, those are used in order to wait for something to happen before moving to the next task
     - e.g. we want to wait for a SQL record to be updated in our database then we will use the Sensors
+
+
+
+## The Providers - [LINK](https://airflow.apache.org/docs/apache-airflow-providers/packages-ref.html)
+
+Apache Airflow allows us to interact with a ton of different tools such as Spark, AWS, Databrick and etc. In fact, Airflow has more than 700 operators. Airflow 2.0 is composed of multiple separated but connected packages with a Core package apache-airflow and providers.
+
+A provider is an independent python package that brings everything we need to interact with a service or a tool such as Spark or AWS. It contains connection types, operators, hooks and so on.
+
+By default, [some operators](https://airflow.apache.org/docs/apache-airflow/stable/_api/airflow/operators/index.html) are pre installed by default such as the PythonOperator and the BashOperator but for the others you will have to install the corresponding prodiver.
+
+Now, we can install only the operators we need (no more 200 different dependencies to deal with whereas we just use 3 or 4 operators). If there is a new version of our operator, we just have to update the provider and not our Airflow instance like the version before. On top of that, it's never been easy to create our own provider.
+
+Also, to know which providers are already installed, type ```airflow providers list```.
+
 
 
 # AIRFLOW IS NOT A DATA STREAMING SOLUTION NEITHER DATA PROCESSING FRAMEWORK
@@ -186,3 +204,36 @@ So if we want to process data every second then **don't use Airflow** because it
         - define the *default arguments* on top of our DAG object as dictionary data types and inside it we have to specify all the arguemnts that will be common to all our our tasks/operators in our data pipeline
             - define the start date in the default arguments
                 - the value of this parameter is actually when our data pipeline will start being scheduled
+
+
+
+### DAG Scheduling
+
+In Airflow, there is one concept that we absolutely need to remember which is how our DAGs are scheduled. Whenever we define a DAG, there are 2 arguments that we will always define:
+
+- `start_date`
+    - this parameter is defining when our DAG will start being scheduled
+- `schedule_interval`
+    - this parameter is defining the frequency at which our data pipeline will be triggered
+
+> There is something that we absolutely need to remember is that our data pipeline will be effectively triggered once the `start_date` plus the `schedule_interval` is elapsed.
+
+
+
+## How to Test New Task
+
+Each time we add a new task in our data pipeline, there is always one thing that we have to do and that is testing our task. To do this, there is a specific command as below :
+
+```airflow tasks test <DAG id> <task id> <execution date with format yyyy-mm-dd>```
+
+The above command allows us to test a specific task without checking for the dependencies neither storing any metadata related to that task.
+
+
+
+### Backfilling and Catchup
+
+Let's imagine that we make a mistake or something issue in specific task and specific date/time in our data pipeline, then backfilling and catchup concepts in Airflow are very important to help us resolve the issue.
+
+We have to know that automatically Airflow will run all the non-triggered DAGruns between the time where we pause and the time where we have resume our DAG so all the non-triggred DAGruns will be automatically by Airflow in order to catch up all the non-triggered DAGruns between that period of time. This is controlled by a very simple paramater but very powerful called `catchup` which is set to *True* by default for all of our DAGs.
+
+> If we initiate the value of `catchup` parameter as *False* in our DAG and after several times we change the value with *True* then once we running the DAG again it will trigger all the non-triggered DAGruns starting from the latest execution_date not from start_date. Non-triggered DAGruns will be automatically triggered by Airflow starting from the start_date if it is the first time that we schedule our data pipeline otherwise will be triggered from the latest execution_date. but we can change it by going to the *Browse* menu and selecting the *DAG Runs* sub-menu then delete all records related to the DAG that we will restart.
