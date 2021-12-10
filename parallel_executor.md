@@ -111,22 +111,22 @@ Here are the following steps to enable CeleryExecutor:
     ```
     - Once Redis already installed, we need to modify its configuration in order to use it as a service
         - open the Redis configuration file
-        ```bash
-        sudo nano /etc/redis/redis.conf
-        ```
+            ```bash
+            sudo nano /etc/redis/redis.conf
+            ```
         - change the value of `supervised` from `no` to `systemd`
-        ```bash
-        supervised systemd
-        ```
+            ```bash
+            supervised systemd
+            ```
         - exit the file using ctrl+X and save the file with Y
     - Start the Redis service
-    ```bash
-    sudo systemctl restart redis.service
-    ```
+        ```bash
+        sudo systemctl restart redis.service
+        ```
     - Check if Redis is running or not
-    ```bash
-    sudo systemctl status redis.service
-    ```
+        ```bash
+        sudo systemctl status redis.service
+        ```
         - hit Q to exit
     - Now our Redis already installed, configured and ready to use
 - Next we configure the CeleryExecutor with Airflow
@@ -159,6 +159,8 @@ Here are the following steps to enable CeleryExecutor:
     ```
 - Now we have successfully configured Airflow with the CeleryExecutor
 
+> REMEMBER!! Everytime we change the configuration in *airflow.cfg* file, we need to restart Airflow and the Scheduler to apply the changes that we made.
+
 
 ### The Celery Flower
 
@@ -186,3 +188,61 @@ This is how we add new worker to our Airflow instance:
     ```
     - by executing this command, we are specifying that the current machine where this command is executed is a worker and so that machine can be used to execute our tasks
     - in the real scenario, we'll actually execute this command on each machine that we want to add to our Selery cluster
+
+
+### The Important Parameters We Must Know
+
+There are some very important parameters that we need to be aware of and have to know in order to fully control the way of our tasks are executed in Airflow.
+
+
+#### Parallelism
+
+Parallelism defines the total number of tasks that we can execute in our own entire Airflow instance. If we open *airflow.cfg* file and look for `parallelism` variable, the value is set to 32 by default means we can execute at most 32 tasks in our entire Airflow instance.
+
+
+#### Concurrency
+
+Concurrency allows us to specify the maximum number of tasks that we can execute for a given DAG across all of its DAGruns. If we open *airflow.cfg* file and look for `dag_concurrency` variable, the value is set to 16 by default means we can execute at most 16 tasks for a given DAG across all all of its DAGruns.
+
+
+#### Max Active Runs
+
+Let's say that we have several DAGruns running and each DAGrun depend on the previous one, and we want to limit the number of DAGruns that we can execute at the same time then `max_active_runs_per_dag` variable allows us to do that. That variable can be found in *airflow.cfg* file and the value is set to 16 by default means at most 16 DAGruns we run in parallel for a given DAG.
+
+
+#### EXAMPLE
+
+```python
+parallelism = 4
+dag_concurrency = 2
+max_active_runs_per_dag = 1
+
+# DAG A
+[T1,T2] >> T3
+
+# DAG B
+[T1,T2] >> T3
+```
+
+As per example above, will we have `T1` and `T2` in both of DAGs running at the same time?
+Answer : The answer is YES!! In that case, we'll have `T1` and `T2` for both DAGs running in parallel because the `parallelism` value is equal to 4 so we can execute at most 4 tasks in our Airflow instance and the `dag_concurrency` value is equal to 2 so we can execute at most 2 tasks in parallel for a given DAG also the `max_active_runs_per_dag` value is equal to 1 so we can definitely trigger 1 DAG for `DAG A` and 1 DAG for `DAG B`. So that's why at the end we'll have the tasks (`T1` and `T2`) in `DAG A` as well as in `DAG B` running at the same time.
+
+> But if we have another DAGrun of `DAG A` or/and `DAG B` will wait because we have `max_active_runs_per_dag` value is equal to 1.
+
+
+If we want to set all of those parameters above to a specific DAG, we can set it all in DAG object parameters when we create it like below.
+
+```python
+from airflow import DAG
+
+default_args = {
+    "start_date" : datetime(2021,3,5)
+}
+
+dag_id = 'our DAG id'
+schdl_intrv = 'our schedule interval value'
+catchup_val = True
+concrr, max_act_r = 3, 5
+
+with DAG(dag_id, schedule_interval=schdl_intrv, default_args=default_args, concurrency=concrr, max_active_runs=max_act_r, catchup=catchup_val) as dag:
+```

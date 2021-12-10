@@ -143,12 +143,12 @@ So if we want to process data every second then **don't use Airflow** because it
     - Now go to the web browser and open *localhost:8080* to check that our Airflow UI is working
     - Create a user using Airflow CLI
         - ```airflow users create -u admin -p admin -f super -l human -r Admin -e admin@airflow.com```
-        - -u means the username
-        - -p means the password for the username
-        - -f means the firstname
-        - -l means the lastname
-        - -r means the role for the username
-        - -e means the email address
+            - -u means the username
+            - -p means the password for the username
+            - -f means the firstname
+            - -l means the lastname
+            - -r means the role for the username
+            - -e means the email address
     - **Important commands in Airflow**
         - ```airflow db init```
             - this command is used for initiating the Metastore of Airflow as well as generating some files and folders needed by Airflow
