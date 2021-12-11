@@ -4,7 +4,7 @@ Airflow is an orchestrator, not a processing framework, process our gigabytes of
 
 
 
-## Core Components of Airflow
+## I. Core Components of Airflow
 
 - Web server
     - Flask server with Gunicorn serving the UI for airflow
@@ -25,9 +25,9 @@ Airflow is an orchestrator, not a processing framework, process our gigabytes of
 
 
 
-## Airflow Architecture
+## II. Airflow Architecture
 
-### One Node Architecture
+### II.1. One Node Architecture
 
 ![Alt text](/files/images/img1.png?raw=true "One Node Architecture")
 
@@ -37,7 +37,7 @@ Airflow is an orchestrator, not a processing framework, process our gigabytes of
 - This architecture is perfect if we want to do some experiments with Airflow or if we have a limited number of tasks that we want to execute
 
 
-### Multi Nodes Architecture (Celery)
+### II.2. Multi Nodes Architecture (Celery)
 
 ![Alt text](/files/images/img2.png?raw=true "Multi Nodes Architecture")
 
@@ -48,7 +48,7 @@ Airflow is an orchestrator, not a processing framework, process our gigabytes of
 
 
 
-## Directed Acyclic Graph (DAG)
+## III. Directed Acyclic Graph (DAG)
 
 ![Alt text](/files/images/img3.png?raw=true "DAG")
 
@@ -56,7 +56,7 @@ The DAG is data pipeline in Airflow and it's a graph like the image above with n
 
 
 
-## Types of Operators
+## IV. Types of Operators
 
 1. Action Operators : Execute an action, corresponding to all operators executing a function
     - PythonOperator
@@ -68,7 +68,7 @@ The DAG is data pipeline in Airflow and it's a graph like the image above with n
 
 
 
-## The Providers - [LINK](https://airflow.apache.org/docs/apache-airflow-providers/packages-ref.html)
+## V. The Providers - [LINK](https://airflow.apache.org/docs/apache-airflow-providers/packages-ref.html)
 
 Apache Airflow allows us to interact with a ton of different tools such as Spark, AWS, Databrick and etc. In fact, Airflow has more than 700 operators. Airflow 2.0 is composed of multiple separated but connected packages with a Core package apache-airflow and providers.
 
@@ -88,7 +88,7 @@ So if we want to process data every second then **don't use Airflow** because it
 
 
 
-## How to Start
+## VI. How to Start
 
 - Install Virtual Machine on our local (e.g. VirtualBox)
 - Download Linux distribution (Ubuntu) that will be running in VirtualBox
@@ -172,8 +172,11 @@ So if we want to process data every second then **don't use Airflow** because it
             - this command allows us to trigger our data pipeline with the specific execution date from the CLI of Airflow
 
 
+> To remove all of the example DAGs in our Airflow, just open *airflow.cfg* file, look for `load_examples` variable then change the value to `False`,  after that save the file and restart the Airflow also the Scheduler.
 
-## How to Crete a Data Pipeline
+
+
+## VII. How to Crete a Data Pipeline
 
 - Open our VS Code and remote to our VirtualBox engine
 - Activate the python virtual environment that already created before
@@ -220,7 +223,7 @@ In Airflow, there is one concept that we absolutely need to remember which is ho
 
 
 
-## How to Test New Task
+## VIII. How to Test New Task
 
 Each time we add a new task in our data pipeline, there is always one thing that we have to do and that is testing our task. To do this, there is a specific command as below :
 
@@ -230,7 +233,7 @@ The above command allows us to test a specific task without checking for the dep
 
 
 
-## Backfilling and Catchup
+## IX. Backfilling and Catchup
 
 Let's imagine that we make a mistake or something issue in specific task and specific date/time in our data pipeline, then backfilling and catchup concepts in Airflow are very important to help us resolve the issue.
 

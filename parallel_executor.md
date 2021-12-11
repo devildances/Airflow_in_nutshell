@@ -1,4 +1,4 @@
-## 1. Default Configurations of Airflow
+## I. Default Configurations of Airflow
 
 When we install and run Airflow for the first time, we get the default configuration.
 
@@ -15,7 +15,7 @@ airflow config get-value core executor
 
 
 
-## 2. Scaling with the Local Executor
+## II. Scaling with the Local Executor
 
 The SequentialExecutor is extremely useful if we want to debug our data pipelines as our task will be executed one after the other, which makes debuging process easier or if we want to make some experiments. If we want to execute multiple tasks in parallel at the same time and also start scaling AIrflow as we will use it in production then we need 2 things:
 - we need to change the database (such as Postgres) that allows us to have multiple reads as well as multiple writes
@@ -75,7 +75,7 @@ Now we can do that by the following steps:
 
 
 
-## 3. Scaling with the Celery Executor
+## III. Scaling with the Celery Executor
 
 The LocalExecutor is extremely powerful as we can start scaling Airflow and executing multiple tasks in parallel in very easy way. We just need to configure postgres and change the executor in the configuration file of Airflow with LocalExecutor and we are ready to execute as many tasks as the resources of our single machine allow us to do  but at some point we will be limited. If we have hundreds of tasks to execute, obviously a single machine won't be enough at some point and that's where we need to find another executor in order to scale as much as we need. There are 2 executors to do this, the first one is the **CeleryExecutor** and the second one is **KubernetesExecutor**.
 
@@ -162,7 +162,7 @@ Here are the following steps to enable CeleryExecutor:
 > REMEMBER!! Everytime we change the configuration in *airflow.cfg* file, we need to restart Airflow and the Scheduler to apply the changes that we made.
 
 
-### 3.a. The Celery Flower
+### III.1. The Celery Flower
 
 One coll feature that Airflow brings by default with the Celery executor is **Flower**. It is the User Interface that allows us to monitor our workers that will be used by Airflow and Celery executor where our tasks will be executed.
 
@@ -178,7 +178,7 @@ We can start The Celery Flower by the following:
 > If you get the error while trying to execute Flower command, probably because the Celery version you installed is not supported by the current version of Airflow so you need to downgrade the version of the Celery by running this command `pip install --upgrade apache-airflow-providers-celery==2.0.0`
 
 
-### 3.b. Add New Worker to Airflow Instance
+### III.2. Add New Worker to Airflow Instance
 
 This is how we add new worker to our Airflow instance:
 - Open new terminal
@@ -190,27 +190,27 @@ This is how we add new worker to our Airflow instance:
     - in the real scenario, we'll actually execute this command on each machine that we want to add to our Selery cluster
 
 
-### 3.c. The Important Parameters We Must Know
+### III.3. The Important Parameters We Must Know
 
 There are some very important parameters that we need to be aware of and have to know in order to fully control the way of our tasks are executed in Airflow.
 
 
-#### 3.c.1. Parallelism
+#### III.3.a. Parallelism
 
 Parallelism defines the total number of tasks that we can execute in our own entire Airflow instance. If we open *airflow.cfg* file and look for `parallelism` variable, the value is set to 32 by default means we can execute at most 32 tasks in our entire Airflow instance.
 
 
-#### 3.c.2. Concurrency
+#### III.3.b. Concurrency
 
 Concurrency allows us to specify the maximum number of tasks that we can execute for a given DAG across all of its DAGruns. If we open *airflow.cfg* file and look for `dag_concurrency` variable, the value is set to 16 by default means we can execute at most 16 tasks for a given DAG across all all of its DAGruns.
 
 
-#### 3.c.3. Max Active Runs
+#### III.3.c. Max Active Runs
 
 Let's say that we have several DAGruns running and each DAGrun depend on the previous one, and we want to limit the number of DAGruns that we can execute at the same time then `max_active_runs_per_dag` variable allows us to do that. That variable can be found in *airflow.cfg* file and the value is set to 16 by default means at most 16 DAGruns we run in parallel for a given DAG.
 
 
-#### 3.c.4. EXAMPLE
+#### III.3.d. EXAMPLE
 
 ```python
 parallelism = 4
