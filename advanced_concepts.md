@@ -48,7 +48,7 @@ When we want to implement subDAGs in our data pipeline, we need 2 things:
             - `child_dag_id`
             - `default_args`
 
-At this point we have to know that **SubDAGs are not recommended at all in production or even in development stage so WE SHOULD NOT USE SUBDAGS!!**.
+At this point we have to know that **SubDAGs are not recommended at all in production or even in development stage so WE SHOULD NOT USE SUBDAGS!!**
 There are 3 main reasons why we shouldn't use SubDAGs:
 
 1. We can end up with deadlocks means at some point we might not be able to execute any more tasks in our Airflow instance
