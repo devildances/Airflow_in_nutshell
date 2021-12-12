@@ -104,4 +104,4 @@ Let's take a very simple use case as per image above. Imagine that we have that 
             - MySQL will be able to store at most 64KB in our **XCom**
         - we really have to be careful with **XCom** as it is limited in size so please **don't use Airflow as a processing framework like Spark or Flink** because this is not the purpose of Airflow
 
-> Please use **XCom** carefully, don't share big data between our tasks otehrwise we'll end up with memory overflow error. Keep in mind that **XCom** are limited in size that depends on which database we are using.
+> Please use **XCom** carefully, don't share big data between our tasks otherwise we'll end up with memory overflow error. Keep in mind that **XCom** are limited in size that depends on which database we are using.
