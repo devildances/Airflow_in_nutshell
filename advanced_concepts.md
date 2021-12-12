@@ -74,8 +74,34 @@ TaskGroups are super powerful and super flexible so forget about SubDAGs and go 
 
 
 
-## II. Exchange Data Between Tasks
+## II. Executing by Conditions
 
 
 
-## III. Executing by Conditions
+## III. Exchange Data Between Tasks
+
+How can we share data between tasks and how can we make sure that whenever we do that we won't explode the memory of Airflow?
+
+![Alt text](/files/images/img8.png?raw=true "exchange")
+
+Let's take a very simple use case as per image above. Imagine that we have that data pipeline with only 2 tasks, the first task is in charge of downloading some file names that will be used in the second task in order to download the data corresponding to those files. in that typical use case, what we want to achieve is to get the list of filenames from the first task in the second task. There are 2 ways in Airflow to achieve this:
+
+- using external tool
+    - ![Alt text](/files/images/img9.png?raw=true "external tool")
+    - we can use an external tool in order to push the filenames and pull those from the external tool in the second task
+    - it works pretty well but we add complexity to our data pipeline because we have to set up the connection to that external tool and also have to make sure that this external tool is actually available in order to share data between our tasks
+- using **XCom**
+    - ![Alt text](/files/images/img10.png?raw=true "xcom")
+    - in the second way we still push and pull our data but this time we will use **XCom**
+    - **XCom** in Airflow stands for *Cross communication* that allows us to exchange messages or small amount of data
+    - so whenever we need to exchange data between our tasks we'll use the **XCom** and we can think of **XCom** as a little object with *key & value* pair
+        - a *key* which is used as an identifier in order to pull our data from another task
+        - and a *value* corresponding to the data that we want to exchange
+    - we have to be careful with **XCom** because it is limited in size
+        - remember, when we interact with **XCom** we're actually storing data in the meta database of Airflow and depending on the database we user for our instance we'll have different size limits for our **XCom**
+            - SQLite will be able to store at most 2GB in our **XCom**
+            - Postgres will be able to store at most 1GB in our **XCom**
+            - MySQL will be able to store at most 64KB in our **XCom**
+        - we really have to be careful with **XCom** as it is limited in size so please **don't use Airflow as a processing framework like Spark or Flink** because this is not the purpose of Airflow
+
+> Please use **XCom** carefully, don't share big data between our tasks otehrwise we'll end up with memory overflow error. Keep in mind that **XCom** are limited in size that depends on which database we are using.
