@@ -76,6 +76,57 @@ TaskGroups are super powerful and super flexible so forget about SubDAGs and go 
 
 ## II. Executing by Conditions
 
+One very common use case in Airflow is to be able to choose one task or another according to criteria or a value. How can we do that in Airflow? What is the mechanism allowing us to do this and how it works? Well, in order to do this we use the **BranchPythonOperator**.
+
+
+### II.1. BranchPythonOperator
+
+The **BranchPythonOperator** allows us to execute one task or another by returning the *task_id* of the task that we want to execute.
+
+
+### III.2 Trigger Rules
+
+![Alt text](/files/images/img11.png?raw=true "exception")
+
+Let's imagine we have the data pipeline as per simple use case above with 3 tasks dowloading the files then we have another task called *Success* that we want to execute as soon as all tasks *Downloading* succeed, well there is nothing to do here because this is the dafault behavior of Airflow that *Success* task will be executed once all *Downloading* tasks completed. But now what about if there is another task named *Alerting* that we want to execute as soon as one of the *Downloading* tasks fails and skip *Success* task? The answer is using The **Trigger Rules**.
+
+The **Trigger Rules** allow us to change the default behavior of our tasks and more specifically we can change how a task is getting triggered by changing its **Trigger Rule**.
+
+There are 9 different triggers in Airflow in order to change the way our tasks are getting triggered in our data pipelines as following:
+- `all_success`
+    - ![Alt text](/files/images/img12.png?raw=true "all_success")
+    - Let's say we have the data pipeline like the image above
+        - if all tasks (*Task A* and *Task B*) succeed then *Task C* will succeed as well
+        - if one of the tasks (*Task A* or *Task B*) fails then *Task C* will be in *upstream_failed* status
+    - this is the default behavior, if we create our data pipeline and execute our tasks we'll get this behavior
+- `all_failed`
+    - ![Alt text](/files/images/img13.png?raw=true "all_failed")
+    - Let's say we have the data pipeline like the image above
+        - if all tasks (*Task A* and *Task B*) have failed then *Task C* will be triggered
+        - but if one task (*Task A* or *Task B*) succeed then *Task C* will be skipped
+- `all_done`
+    - ![Alt text](/files/images/img14.png?raw=true "all_done")
+    - this trigger allows us to execute the task of *Task C* whatever the status of the upstream tasks (*Task A* and *Task B*)
+        - as long as the upstream tasks get triggered, the next task will be triggered as well
+- `one_success`
+    - ![Alt text](/files/images/img15.png?raw=true "one_success")
+    - with this trigger, *Task C* will be triggered as soon as one of the upstream tasks (*Task A* or *Task B*) succeed without waiting the other
+- `one_failed`
+    - ![Alt text](/files/images/img16.png?raw=true "one_failed")
+    - this trigger is the opposite of `one_success`
+    - with this trigger, *Task C* will be triggered as soon as one of the upstream tasks (*Task A* or *Task B*) fails without waiting the other
+- `none_failed`
+    - ![Alt text](/files/images/img17.png?raw=true "none_failed")
+    - when we apply this trigger to our task (*Task C*) as long as all the upstream tasks (*Task A* and *Task B*) have succeeded or have been skipped then *Task C* will be triggered
+- `none_failed_or_skipped`
+    - ![Alt text](/files/images/img18.png?raw=true "none_failed_or_skipped")
+    - if we apply this trigger to our task (*Task C*) as long as all the upstream tasks (*Task A* and *Task B*) haven't failed but at least 1 upstream task (*Task A* or *Task B*) succeeds then *Task C* will be triggered
+
+
+Back to the our simple use case data pipeline at the beginning, so our goal for the tasks is we want to execute the *Alerting* task as soon as one of the upstream tasks of *Downloading* fails so for this task we should apply the Trigger Rule `one_failed`.
+
+![Alt text](/files/images/img19.png?raw=true "one_failed_case")
+
 
 
 ## III. Exchange Data Between Tasks
@@ -93,15 +144,15 @@ Let's take a very simple use case as per image above. Imagine that we have that 
 - using **XCom**
     - ![Alt text](/files/images/img10.png?raw=true "xcom")
     - in the second way we still push and pull our data but this time we will use **XCom**
-    - **XCom** in Airflow stands for *Cross communication* that allows us to exchange messages or small amount of data
+    - **XCom** in Airflow stands for *Cross Communication* that allows us to exchange messages or small amount of data
     - so whenever we need to exchange data between our tasks we'll use the **XCom** and we can think of **XCom** as a little object with *key & value* pair
         - a *key* which is used as an identifier in order to pull our data from another task
         - and a *value* corresponding to the data that we want to exchange
     - we have to be careful with **XCom** because it is limited in size
         - remember, when we interact with **XCom** we're actually storing data in the meta database of Airflow and depending on the database we user for our instance we'll have different size limits for our **XCom**
-            - SQLite will be able to store at most 2GB in our **XCom**
-            - Postgres will be able to store at most 1GB in our **XCom**
-            - MySQL will be able to store at most 64KB in our **XCom**
+            - SQLite will be able to store at most 2GB
+            - Postgres will be able to store at most 1GB
+            - MySQL will be able to store at most 64KB
         - we really have to be careful with **XCom** as it is limited in size so please **don't use Airflow as a processing framework like Spark or Flink** because this is not the purpose of Airflow
 
 > Please use **XCom** carefully, don't share big data between our tasks otherwise we'll end up with memory overflow error. Keep in mind that **XCom** are limited in size that depends on which database we are using.
