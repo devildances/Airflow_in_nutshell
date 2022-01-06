@@ -35,7 +35,7 @@ def _processing_user(ti):
     processed_user.to_csv('/tmp/processed_user.csv', index=None, header=False)
 
 # instantiate the DAG and also all the parameters
-with DAG('user_processing', schedule_interval='@daily',
+with DAG(dag_id='user_processing', schedule_interval='@daily',
         default_args=default_args, catchup=False) as dag:
     # Define the tasks/operators
     '''
