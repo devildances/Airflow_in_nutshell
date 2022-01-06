@@ -1,4 +1,4 @@
-# Create Airflow Plugins with ElastichSearch and PostgreSQL
+# Create Airflow Plugins with ElasticSearch and PostgreSQL
 
 At this point, we'll answer some important questions:
 
@@ -56,7 +56,7 @@ To add Plugins in Airflow we can do the following:
 - First, we have to know that by default there are 3 folders that Airflow monitors for us (the folder plugins, coffee and dags)
 - We'll put our files corresponding to our Plugins inside the folder plugins
     - this folder is not automatically created so we have to create it by ourselves
-    - historycally, before Apache Airflow 2.0, we had to use the *AirflowPluginClass* and more specifically we had to create a class corresponding to our Plugin inheriting from *AirflowPluginClass*
+    - historically, before Apache Airflow 2.0, we had to use the *AirflowPluginClass* and more specifically we had to create a class corresponding to our Plugin inheriting from *AirflowPluginClass*
         - before Apache Airflow 2.0 we had to specify our operators, hooks, executors, views and so on inside that class
         - but this is not the case anymore in Apache Airflow 2.0
         - in Apache Airflow 2.0 the *AirflowPluginClass* is only used for customizing the UI of Airflow
