@@ -1,7 +1,7 @@
 sandbox
+materials/
 *.ova
 __pycache__
 *.pyc
 *.DS_Store
 *.db
-materials/
