@@ -1,7 +1,7 @@
 # %% import all the libraries and modules that we need
 
 # Initiate - the DAG object is actually our data pipeline so we need to import it first
-from email.mime import application
+from email import message
 from airflow import DAG
 from datetime import datetime, timedelta
 
@@ -23,6 +23,12 @@ from airflow.providers.apache.hive.operators.hive import HiveOperator
 
 # 6th task - we use Spark Operator to process the data rather than Python Operator in Airflow to avoid memory overflow error
 from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
+
+# 7th task - we need Email Operator so we can send an email notification
+from airflow.operators.email import EmailOperator
+
+# 8th task - import specific Operator for us to enable send a notification via Slack
+from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
 
 # %% additional functions
 
@@ -46,6 +52,9 @@ def download_rates():
                 json.dump(outdata, outfile)
                 outfile.write('\n')
 
+def _get_message() -> str:
+    return "error from forex_data_pipeline"
+
 # %% start the code
 
 # Initiate - define the default arguments for our DAG object that'll be applied on all of our tasks
@@ -53,7 +62,7 @@ default_args = {
     "owner" : "airflow",
     "email_on_failure" : False,
     "email_on_retry" : False,
-    "email" : "admin@localhost.com",
+    "email" : "dr.dslearn@gmail.com",
     "retries" : 1,
     "retry_delay" : timedelta(minutes=5)
 }
@@ -197,3 +206,61 @@ with DAG("forex_pipeline", start_date=datetime(2022,1,1),
     *NOTE : We always have to check the task is running well or not manually
             from Airflow CLI before we run it through the Airflow DAG
     '''
+
+    # # 7th task - this task responsible to send an email notif when any error occurs
+    # send_email_notif = EmailOperator(
+    #     task_id = "send_email_notif",
+    #     to = "dr.dslearn@gmail.com",
+    #     subject = "forex_data_pipeline",
+    #     html_content = "<h2>forex_data_pipeline notification</h2>"
+    # )
+
+    '''
+    7TH TASK
+    The way for us to be able to send an email notification we need to generate the token
+    first through https://security.google.com/settings/security/apppasswords, after we get
+    the token then open the airflow.cfg file to modify the settings corresponding to the
+    SMTP protocol and look for smtp variable to set some variables of SMTP:
+    smtp_host = smtp.gmail.com
+    smtp_user = <our email address>
+    smtp_password = <our generated token>
+    smtp_port = 587
+    smtp_mail_from = <our email address>
+
+    since we change the configuration of airflow.cfg we need to restart our Airflow instance
+    in our docker cluster by running "docker-compose restart airflow" command.
+
+    *NOTE : We always have to check the task is running well or not manually
+            from Airflow CLI before we run it through the Airflow DAG
+    '''
+
+    # # 8th task - this task will send a notification message through Slack for specific channel in specific workspace
+    # send_slack_notif = SlackWebhookOperator(
+    #     task_id = "send_slack_notif",
+    #     http_conn_id = "slack_conn",
+    #     message = _get_message(),
+    #     channel = "$<our channel name>"
+    # )
+
+    '''
+    8TH TASK
+    Open the Slack apps and go to the workspace that we want to use, go to the api.slack.com/apps
+    on the browser to create a Slack app that will be used for our Airflow hook (set the App Name and
+    select the workspace we want to use) then verify the feature Incoming Webhooks is activated
+    (ON status and click 'Add New Webhook to Workspace' button then choose sepcific channel) and copy
+    that Webhook URL.
+
+    Open the Airflow UI and create new Slack connection so we can send a notification to Slack channel
+    with the following values:
+    Conn Id : slack_conn
+    Conn Type : HTTP
+    password : <Slack Webhook URL>
+
+    *NOTE : We always have to check the task is running well or not manually
+            from Airflow CLI before we run it through the Airflow DAG
+    '''
+
+
+    is_forex_rates_available >> is_forex_currencies_file_available >> downloading_rates
+    downloading_rates >> saving_rates >> creating_forex_rates_table >> forex_processing
+    # forex_processing >> [send_email_notif, send_slack_notif]
