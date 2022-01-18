@@ -18,6 +18,7 @@
 As a best practice, set the `start_date` globally at the DAG level (through `default_args` using datetime object such as `datetime.datetime(2022,9,1)` with (yyyy,m,d) format) and don't use dynamic values such as `datetime.now()`. We can define the `schedule_interval` either with cron expressions (ex: `0 * * * *`) or timedelta objects (ex : `datetime.timedelta(days=1)`) but for a best practice we should use cron expressions rather than timedelta objects.
 
 <img src="/files/images/img23.png" height="55%" width="55%" />
+
 <br><br><br>
 
 
@@ -133,6 +134,7 @@ There are 2 types of timezone in Python
 
            bash_task_1 >> python_task_2 >> python_task_3
       ```
+
 <br><br><br>
 
 

@@ -7,6 +7,7 @@ Branching is the way to go down a certain path in our DAG based on an arbitrary 
 For example, we've the DAG above with 3 tasks depending on the task implemented with the `BranchPytonOperator`. Let's say that the task return the value of the `task_id` is `task_c` therefore only task_c will be executed whereas task_a and task_b will be skipped.
 
 > The example code of branching can be found in the *branch_condition.py* file under *dags* folder.
+
 <br><br><br>
 
 
@@ -15,6 +16,7 @@ For example, we've the DAG above with 3 tasks depending on the task implemented 
 <img src="/files/images/img29.png" height="55%" width="55%" />
 
 > The example code of Trigger Rules can be found in the *trigger_rule_dag.py* file under *dags* folder.
+
 <br><br><br>
 
 
@@ -35,6 +37,7 @@ For example, we've the DAG above with 3 tasks depending on the task implemented 
 Key | Value | Is encrypted
 --- | --- | ---
 my_settings | {login:"me", pass:"secret"} | Yes
+
 <br><br>
 
 ### 9.b Templating
@@ -64,6 +67,7 @@ my_settings | {login:"me", pass:"secret"} | Yes
 <br><br>
 
 > The example code of Variables, Templates and Macros can be found in the *template_dag.py* file under *dags* folder.
+
 <br><br><br>
 
 
@@ -100,4 +104,5 @@ Once the XCOM is stored into the metadata database, the 2nd operator can pull th
 NOTES : One thing we must keep in mind is that AIrflow won't automatically clean our XCOMs, it's up to us to do the job and create an automatic process to clean all of those, otherwise at some point we'll waste space resources of our metadata database.
 
 > The example code of XCOMs can be found in the *xcom_a_dag.py*, *xcom_b_dag.py* and *xcom_big_dag.py* files under *dags* folder.
+
 <br><br><br>
