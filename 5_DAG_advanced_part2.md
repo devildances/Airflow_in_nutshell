@@ -106,3 +106,58 @@ NOTES : One thing we must keep in mind is that AIrflow won't automatically clean
 > The example code of XCOMs can be found in the *xcom_a_dag.py*, *xcom_b_dag.py* and *xcom_big_dag.py* files under *dags* folder.
 
 <br><br><br>
+
+
+## 11. TriggerDagRunOperator
+
+`TriggerDagRunOperator` allows us to trigger another DAG from a DAG or more specifically it triggers a DAGrun for a specified DAG ID when a condition is met.
+
+<img src="/files/images/img34.png" height="50%" width="50%" />
+
+For example, we have a DAG which is the controller and another DAG which is the target. From the controller we need to instantiate a task with the `TriggerDagRunOperator`. This operator expects multiple arguments such as:
+
+- `trigger_dag_id`
+    - this is corresponding to the DAG we want to trigger
+- `python_callable`
+    - function where the condition will be checked if the target DAG can be trigger or not
+- `params`
+    - and some parameters that we'll be able to send from the controller to the target DAG
+
+
+Important notes:
+
+- Controller doesn't wait for target to finish
+- Controller and target are independent
+- No visualization from the controller neither history
+- Both DAGs must be scheduled
+- Target DAG schedule interval equals to None
+
+
+> The example code of `TriggerDagRunOperator` can be found in the *triggerdagop_controller_dag.py* and *triggerdagop_target_dag.py* files under *dags* folder.
+
+<br><br><br>
+
+
+## 12. ExternalTaskSensor for dependencies between our DAGs
+
+Sensor is a special kind of operators witing for something to happen and that's exactly what the `ExternalTaskSensor` does but this time it waits for an external task to finish before moving to the next task and that's how we can create dependencies between our DAGs. Imagine that we have 2 DAGs where the first one extracts data from production databases and the second one aggregates the data to push the result into another database then the thing we can do is to wait for the first DAG to finish before starting the second DAG by implementing `ExternalTaskSensor` we can postpone the start of the second DAG until the first one successfully finishes.
+
+<img src="/files/images/img35.png" height="50%" width="50%" />
+
+As per image above, we have `DAG 1` and `DAG 2`. Both DAGs have the same `schedule_interval` because the `ExternalTaskSensor` assumes that both DAGs are the same execution date. If our DAGs don't have the same execution date but still have the same `schedule_interval` we can still use the sensor by modifying the parameters `execution_delta` or `execution_date_fn` so both DAGs have the same `schedule_interval`. In the example `DAG 2` will wait for the last task of `DAG 1` which is `t3` before moving to thext task by using the `ExternalTaskSensor` as first task waiting for the task `t3` of `DAG 1` ro succeed.
+
+
+Important notes:
+
+- We should keep the same `schedule_interval` between our dependent DAGs
+- If we use this sensor and our DAGs don't have the same `execution_date` the we can solve this by defining either `execution_delta` or `execution_date_fn` parameters and **NEVER BOTH**
+    - `execution_delta` is the time difference with the previous execution to look at and the default is the same execution date as the current task
+        - for example if we have 2 DAGs running every hour but the first DAG is triggered at 10:00AM and the second DAG at 10:30AM then we just need to assign a `timedelta(minutes=30)` to the parameter `execution_delta`
+        - by doing so, the execution dates will be the same for the `ExternalTaskSensor`
+    - `execution_date_fn` follows the same purpose of `execution_delta` but in a more flexible way
+        - this parameter expects a function that receives the current execution date and returns the desired execution date
+- By default the sensor will use the *poke* method to check if the task from the other DAG succeed or not
+    - we should use the *reschedule* mode if needed which is considered as a best practice with the `ExternalTaskSensor` to avoid wasting worker slots
+
+
+> The example code of `ExternalTaskSensor` can be found in the *externaltasksensor_dag.py* and *sleep_dag.py* files under *dags* folder.
