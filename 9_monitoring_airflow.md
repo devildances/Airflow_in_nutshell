@@ -64,20 +64,26 @@ def setup_logging(filename):
 <img src="/files/images/img37.png" height="50%" width="50%" />
 
 The image above is the architecture we're going to set up for writing and reading log events of Airflow in ElasticSearcg by using FileBeat, LogStash, ElasticSearch and Kibana. Basically, we'll have 3 Docker containers corresponding to LogStash, ElasticSearch and Kibana as well as another container where the Airflow worker is running.
+<br>
+<img src="/files/images/img38.png" height="40%" width="40%" />
 
-- <img src="/files/images/img38.png" height="40%" width="40%" />
-    - inside the Airflow worker container we'll install FileBeat in order to fetch the logs and ship them to LogStash
-    - IMPORTANT : Airflow won't write the log events directly into ElasticSearch
-        - when a DAG will be triggered, the log events of a given task will be stored in JSON into local log files
-        - log files will be at the path given by the parameter `based_log_folder` which is `/usr/local/airflow/logs` by default
-- <img src="/files/images/img39.png" height="40%" width="40%" />
-    - each time a new log file is produced, FileBeat will process it add an offset to each log event and send the output to LogStash
-- <img src="/files/images/img40.png" height="45%" width="45%" />
-    - LogStash will get the logs and will apply some transformations in order to generate a `log_id` field required by Airflow to finally ship them into ElasticSearch
-- <img src="/files/images/img41.png" height="40%" width="40%" />
-    - once the data are stored into ElasticSearch, we'll be able to monitor our DAGs through Kibana by making dashboards
+- inside the Airflow worker container we'll install FileBeat in order to fetch the logs and ship them to LogStash
+- IMPORTANT : Airflow won't write the log events directly into ElasticSearch
+    - when a DAG will be triggered, the log events of a given task will be stored in JSON into local log files
+    - log files will be at the path given by the parameter `based_log_folder` which is `/usr/local/airflow/logs` by default
 
+<img src="/files/images/img39.png" height="40%" width="40%" />
 
+- each time a new log file is produced, FileBeat will process it add an offset to each log event and send the output to LogStash
+
+<img src="/files/images/img40.png" height="45%" width="45%" />
+
+- LogStash will get the logs and will apply some transformations in order to generate a `log_id` field required by Airflow to finally ship them into ElasticSearch
+
+<img src="/files/images/img41.png" height="35%" width="35%" />
+
+- once the data are stored into ElasticSearch, we'll be able to monitor our DAGs through Kibana by making dashboards
+<br>
 There are 2 important points in order to read the logs from ElasticSearch, Airflow assumes 2 things:
 
 - first, our log event should have a field called `offset` which will be used to display the logs in the right order
